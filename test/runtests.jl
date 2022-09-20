@@ -2,5 +2,5 @@ using RDM
 using Test
 
 @testset "RDM.jl" begin
-    # Write your tests here.
+    include("test_rdm.jl")
 end
