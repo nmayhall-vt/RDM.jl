@@ -132,6 +132,7 @@ function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) wher
     length(rdm1.a) == length(ints.h1) || throw(DimensionMismatch)
     length(rdm1.b) == length(ints.h1) || throw(DimensionMismatch)
 
+    no = n_orb(ints)
     e = ints.h0
     
     for p in 1:no, q in 1:no
