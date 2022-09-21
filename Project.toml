@@ -15,6 +15,7 @@ QCBase = "0dbae682-d491-4cbc-9a73-7148926f1b63"
 TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 
 [compat]
+TensorOperations = "3"
 julia = "≥ 1.7"
 
 [extras]
