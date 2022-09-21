@@ -136,7 +136,7 @@ function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) wher
     e = ints.h0
     
     for p in 1:no, q in 1:no
-        e += ints.h1[p,q] * (rdm1.a[p,q] + rdm.b[p,q])
+        e += ints.h1[p,q] * (rdm1.a[p,q] + rdm1.b[p,q])
     end
     
     for p in 1:no, q in 1:no, r in 1:no, s in 1:no
