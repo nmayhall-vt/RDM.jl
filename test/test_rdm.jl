@@ -58,20 +58,34 @@ end
     fa, fb = RDM.compute_fock(ints, d1)
     e,C = eigen(fa+fb)
     display(e)
+    g = build_orbital_gradient(ints, ssRDM1(d1), ssRDM2(d2))
+    @printf("\n Orbital Gradient should be zero\n")
+    display(norm(g))
+    
+    g = build_orbital_gradient(ints, d1, d2)
+    @printf("\n Orbital Gradient should be zero\n")
+    display(norm(g))
    
-
+    println()
+    println()
     @load "h6_sto3g/rdms_42.jld2" 
     d1 = RDM1(da,db)
     d2 = RDM2(daa, dab, dbb)
     @test isapprox(compute_energy(ints, d1, d2), e_ref)
     @test isapprox(compute_energy(ints, ssRDM1(d1), ssRDM2(d2)), e_ref)
     
-    display(norm(d1.a - RDM1(d2).a))
-    display(norm(d1.b - RDM1(d2).b))
     @test isapprox(norm(d1.a - RDM1(d2).a),0,atol=1e-14)
     @test isapprox(norm(d1.b - RDM1(d2).b),0,atol=1e-14)
 
     fa, fb = RDM.compute_fock(ints, d1)
     e,C = eigen(fa+fb)
     display(e)
+
+    g = build_orbital_gradient(ints, ssRDM1(d1), ssRDM2(d2))
+    @printf("\n Orbital Gradient should be zero\n")
+    display(norm(g))
+    
+    g = build_orbital_gradient(ints, d1, d2)
+    @printf("\n Orbital Gradient should be zero\n")
+    display(norm(g))
 end

@@ -1,3 +1,4 @@
+using QCBase
 using RDM 
 using TensorOperations
 using LinearAlgebra
@@ -34,7 +35,7 @@ function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
 end
 function ssRDM2(rdm::RDM2{T}) where T
-    return ssRDM2{T}(rdm.aa .+ rdm.bb .+ 2 .* rdm.ab)
+    return ssRDM2{T}(rdm.aa .+ rdm.bb .+ rdm.ab + permutedims(rdm.ab, [3,4,1,2]))
 end
 
 function RDM2(rdm::RDM1{T}) where T
@@ -50,12 +51,14 @@ function RDM2(rdm::RDM1{T}) where T
     return ssRDM2{T}(Daa, Dab, Dbb)
 end
 
-n_orb(r::RDM1) = size(r.a,1)
-n_orb(r::RDM2) = size(r.aa,1)
-n_orb(c::Cumulant2) = size(c.a,1)
+function QCBase.n_orb(r::RDM1) 
+    size(r.a,1)
+end
+QCBase.n_orb(r::RDM2) = size(r.aa,1)
+QCBase.n_orb(c::Cumulant2) = size(c.a,1)
 
-n_orb(r::ssRDM1) = size(r.rdm,1)
-n_orb(r::ssRDM2) = size(r.rdm,1)
+QCBase.n_orb(r::ssRDM1) = size(r.rdm,1)
+QCBase.n_orb(r::ssRDM2) = size(r.rdm,1)
 
 """
     compute_energy(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}) where T
