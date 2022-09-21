@@ -80,7 +80,9 @@ end
     
     @test isapprox(norm(d1.a - RDM1(d2).a),0,atol=1e-14)
     @test isapprox(norm(d1.b - RDM1(d2).b),0,atol=1e-14)
-
+    @test isapprox(tr(d1.a), 4, atol=1e-14)
+    @test isapprox(tr(d1.b), 2, atol=1e-14)
+    println()
     fa, fb = RDM.compute_fock(ints, d1)
     e,C = eigen(fa+fb)
     display(e)
