@@ -6,11 +6,15 @@ using LinearAlgebra
 struct RDM1{T} <: AbstractArray{T,2} 
     a::Array{T,2}
     b::Array{T,2}
+    #RDM1(a::Matrix{T}, b::Matrix{T}) where T = new{T}(deepcopy(a), deepcopy(b))
+    #RDM1{T}(a, b) where T = new{T}(deepcopy(a), deepcopy(b))
 end
 struct RDM2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
     ab::Array{T,4}
     bb::Array{T,4}
+    #RDM2(a::Array{T,4}, b::Array{T,4}, c::Array{T,4}) where T = new{T}(deepcopy(a), deepcopy(b), deepcopy(c))
+    #RDM2{T}(a, b, c) where T = new{T}(deepcopy(a), deepcopy(b), deepcopy(c))
 end
 struct Cumulant2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
@@ -21,28 +25,19 @@ end
 # spin-summed RDMs
 struct ssRDM1{T} <: AbstractArray{T,2} 
     rdm::Array{T,2}
+    #ssRDM1(a::Matrix{T}) where T = new{T}(deepcopy(a))
+    #ssRDM1{T}(a) where T = new{T}(deepcopy(a))
 end
 struct ssRDM2{T} <: AbstractArray{T,4} 
     rdm::Array{T,4}
+    #ssRDM2(a::Array{T,4}) where T = new{T}(deepcopy(a))
+    #ssRDM2{T}(a) where T = new{T}(deepcopy(a))
 end
 
 
 Base.size(r::RDM1) = return size(r.a)
 Base.size(r::RDM2) = return size(r.aa)
 
-function RDM1(a::Matrix{T}, b::Matrix{T}) where T
-    RDM1{T}(deepcopy(a), deepcopy(b))
-end
-function RDM2(aa::Array{T,4}, ab::Array{T,4}, bb::Array{T,4}) where T
-    RDM2{T}(deepcopy(aa), deepcopy(ab), deepcopy(bb))
-end
-
-function ssRDM1(a::Matrix{T}, b::Matrix{T}) where T
-    ssRDM1{T}(deepcopy(a))
-end
-function ssRDM2(aa::Array{T,4}) where T
-    ssRDM2{T}(deepcopy(aa))
-end
 
 function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
@@ -102,7 +97,7 @@ function RDM1(d2::RDM2{T}) where T
     cb = tr(d1b)
     Na = (1 + sqrt(1+4*ca) )/2
     Nb = (1 + sqrt(1+4*cb) )/2
-    return RDM1{T}(d1a ./ (Na-1), d1b ./ (Nb-1))
+    return RDM1(d1a ./ (Na-1), d1b ./ (Nb-1))
 end
 
 Base.:-(da::RDM1, db::RDM1) = return RDM1(da.a.-db.a, da.b.-db.b) 
