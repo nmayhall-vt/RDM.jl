@@ -37,6 +37,13 @@ function RDM2(aa::Array{T,4}, ab::Array{T,4}, bb::Array{T,4}) where T
     RDM2{T}(deepcopy(aa), deepcopy(ab), deepcopy(bb))
 end
 
+function ssRDM1(a::Matrix{T}, b::Matrix{T}) where T
+    ssRDM1{T}(deepcopy(a))
+end
+function ssRDM2(aa::Array{T,4}) where T
+    ssRDM2{T}(deepcopy(aa))
+end
+
 function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
 end
