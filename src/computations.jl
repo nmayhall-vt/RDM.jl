@@ -12,7 +12,7 @@ Return energy defined by spin-summed  `rdm1` and `rdm2`.
 - `d1`:   1 particle reduced density matrix
 - `d2`:   2 particle reduced density matrix
 """
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}) where T
+function QCBase.compute_energy(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}) where T
 #={{{=#
     length(d1.rdm) == length(ints.h1) || throw(DimensionMismatch)
 
@@ -40,7 +40,7 @@ Return energy defined by `rdm1` and `rdm2`.
 - `d1`:   1 particle reduced density matrix
 - `d2`:   2 particle reduced density matrix
 """
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}) where T
+function QCBase.compute_energy(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}) where T
 #={{{=#
     length(d1.a) == length(ints.h1) || throw(DimensionMismatch)
     length(d1.b) == length(ints.h1) || throw(DimensionMismatch)
@@ -70,7 +70,7 @@ Return energy defined by `rdm1`.
 - `ints`: InCoreInts object
 - `rdm1`: 1 particle reduced density matrix
 """
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) where T
+function QCBase.compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) where T
 #={{{=#
     length(rdm1.a) == length(ints.h1) || throw(DimensionMismatch)
     length(rdm1.b) == length(ints.h1) || throw(DimensionMismatch)
