@@ -193,12 +193,13 @@ function RDM1(d2::RDM2{T}) where T
     n = n_orb(d2) 
     d1a = zeros(n,n)
     d1b = zeros(n,n)
-    tmp = zeros(n,n)
     for p in 1:n
         for q in 1:n
             for r in 1:n
                 d1a[p,q] += d2.aa[p,q,r,r]
+                d1a[p,q] += d2.ab[p,q,r,r]
                 d1b[p,q] += d2.bb[p,q,r,r]
+                d1b[p,q] += d2.ab[r,r,p,q]
             end
         end
     end
