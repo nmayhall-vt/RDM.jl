@@ -48,7 +48,7 @@ function RDM2(rdm::RDM1{T}) where T
         Dbb[p,q,r,s] = rdm.b[p,q] * rdm.b[r,s] - rdm.b[p,s] * rdm.b[r,q]
         Dab[p,q,r,s] = rdm.a[p,q] * rdm.b[r,s]
     end
-    return ssRDM2{T}(Daa, Dab, Dbb)
+    return RDM2{T}(Daa, Dab, Dbb)
 end
 
 function QCBase.n_orb(r::RDM1) 
