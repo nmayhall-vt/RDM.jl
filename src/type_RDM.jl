@@ -197,9 +197,9 @@ function RDM1(d2::RDM2{T}) where T
         for q in 1:n
             for r in 1:n
                 d1a[p,q] += d2.aa[p,q,r,r]
-                d1a[p,q] += d2.ab[p,q,r,r]
+                #d1a[p,q] += d2.ab[p,q,r,r]
                 d1b[p,q] += d2.bb[p,q,r,r]
-                d1b[p,q] += d2.ab[r,r,p,q]
+                #d1b[p,q] += d2.ab[r,r,p,q]
             end
         end
     end
