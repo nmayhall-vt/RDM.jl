@@ -30,6 +30,12 @@ end
 Base.size(r::RDM1) = return size(r.a)
 Base.size(r::RDM2) = return size(r.aa)
 
+function RDM1(a::Matrix{T}, b::Matrix{T}) where T
+    RDM1{T}(deepcopy(a), deepcopy(b))
+end
+function RDM1(aa::Array{T,4}, ab::Array{T,4}, bb::Array{T,4}) where T
+    RDM2{T}(deepcopy(aa), deepcopy(ab), deepcopy(bb))
+end
 
 function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
