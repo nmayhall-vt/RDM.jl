@@ -47,9 +47,18 @@ end
 
 @testset "RDM" begin
     @load "h6_sto3g/rdms_33.jld2" 
+    d11 = RDM1(6)
+    d22 = RDM2(6)
     d1 = RDM1(da,db)
     d2 = RDM2(daa, dab, dbb)
+    
+    d11.a .= d1.a
+    d11.b .= d1.b
+    d22.aa .= d2.aa
+    d22.ab .= d2.ab
+    d22.bb .= d2.bb
     @test isapprox(compute_energy(ints, d1, d2), e_ref)
+    @test isapprox(compute_energy(ints, d11, d22), e_ref)
     @test isapprox(compute_energy(ints, ssRDM1(d1), ssRDM2(d2)), e_ref)
     
     display(norm(d1.a - RDM1(d2).a))

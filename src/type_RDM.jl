@@ -46,6 +46,19 @@ function ssRDM2(rdm::RDM2{T}) where T
     return ssRDM2{T}(rdm.aa .+ rdm.bb .+ rdm.ab + permutedims(rdm.ab, [3,4,1,2]))
 end
 
+function ssRDM1(no::Integer; T=Float64)
+    return ssRDM1{T}(zeros(no, no))
+end
+function ssRDM2(no::Integer; T=Float64)
+    return ssRDM2{T}(zeros(no, no, no, no))
+end
+function RDM1(no::Integer; T=Float64)
+    return RDM1{T}(zeros(no, no), zeros(no, no))
+end
+function RDM2(no::Integer; T=Float64)
+    return RDM2{T}(zeros(no, no, no, no), zeros(no, no, no, no), zeros(no, no, no, no))
+end
+
 function RDM2(rdm::RDM1{T}) where T
     no = n_orb(rdm) 
     Daa = zeros(no, no, no, no)
