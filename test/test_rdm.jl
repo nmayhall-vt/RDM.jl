@@ -125,6 +125,18 @@ end
     @printf("\n Orbital Gradient should be zero\n")
     display(norm(g))
     @test isapprox(norm(g),0.0,atol=1e-7)
+
+
+    no = n_orb(ints)
+    G = rand(no,no)
+    G = G - G'
+    U = exp(G)
+    e0 = compute_energy(ints, d1, d2)
+    ints_1 = orbital_rotation(ints, U)
+    d1_1 = orbital_rotation(d1, U)
+    d2_1 = orbital_rotation(d2, U)
+    e1 = compute_energy(ints_1, d1_1, d2_1)
+    @test isapprox(e0, e1, atol=1e-12)
 end
 
 
