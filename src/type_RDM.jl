@@ -72,14 +72,6 @@ function RDM2(rdm::RDM1{T}) where T
     return RDM2{T}(Daa, Dab, Dbb)
 end
 
-function QCBase.n_orb(r::RDM1) 
-    size(r.a,1)
-end
-QCBase.n_orb(r::RDM2) = size(r.aa,1)
-QCBase.n_orb(c::Cumulant2) = size(c.a,1)
-
-QCBase.n_orb(r::ssRDM1) = size(r.rdm,1)
-QCBase.n_orb(r::ssRDM2) = size(r.rdm,1)
 
 
 
@@ -100,8 +92,8 @@ function RDM1(d2::RDM2{T}) where T
         for q in 1:n
             for r in 1:n
                 d1a[p,q] += d2.aa[p,q,r,r]
+                d1b[p,q] += d2.bb[r,r,p,q]
                 #d1a[p,q] += d2.ab[p,q,r,r]
-                d1b[p,q] += d2.bb[p,q,r,r]
                 #d1b[p,q] += d2.ab[r,r,p,q]
             end
         end
@@ -110,8 +102,19 @@ function RDM1(d2::RDM2{T}) where T
     cb = tr(d1b)
     Na = (1 + sqrt(1+4*ca) )/2
     Nb = (1 + sqrt(1+4*cb) )/2
+    #println((Na, Nb))
     return RDM1(d1a ./ (Na-1), d1b ./ (Nb-1))
 end
+
+
+function QCBase.n_orb(r::RDM1) 
+    size(r.a,1)
+end
+QCBase.n_orb(r::RDM2) = size(r.aa,1)
+QCBase.n_orb(c::Cumulant2) = size(c.a,1)
+
+QCBase.n_orb(r::ssRDM1) = size(r.rdm,1)
+QCBase.n_orb(r::ssRDM2) = size(r.rdm,1)
 
 Base.:-(da::RDM1, db::RDM1) = return RDM1(da.a.-db.a, da.b.-db.b) 
 Base.:+(da::RDM1, db::RDM1) = return RDM1(da.a.+db.a, da.b.+db.b) 

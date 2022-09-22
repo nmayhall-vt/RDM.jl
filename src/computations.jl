@@ -121,3 +121,24 @@ function compute_fock(ints::InCoreInts, rdm1::RDM1)
     return (fa,fb) 
 end
 #=}}}=#
+
+
+
+function LinearAlgebra.tr(d::RDM1)
+    return tr(d.a)+tr(d.b)
+end
+function LinearAlgebra.tr(d::RDM2)
+    n = n_orb(d) 
+    t = 0.0
+    for p in 1:n
+        for q in 1:n
+            t += d.aa[p,p,q,q]
+            t += d.ab[p,p,q,q]
+            t += d.ab[q,q,p,p]
+            t += d.bb[p,p,q,q]
+        end
+    end
+    return t
+end
+
+
