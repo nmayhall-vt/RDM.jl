@@ -6,6 +6,7 @@ using InCoreIntegrals
 
 # Write your package code here.
 include("type_RDM.jl")
+include("subsets.jl")
 include("computations.jl")
 include("transformations.jl")
 include("orbital_rotation_gradients.jl")
