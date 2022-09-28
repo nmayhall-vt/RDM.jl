@@ -3,35 +3,57 @@ using RDM
 using TensorOperations
 using LinearAlgebra
 
+"""
+    a::Array{T,2}   # α
+    b::Array{T,2}   # β
+
+1 particle RDM type 
+"""
 struct RDM1{T} <: AbstractArray{T,2} 
     a::Array{T,2}
     b::Array{T,2}
-    #RDM1(a::Matrix{T}, b::Matrix{T}) where T = new{T}(deepcopy(a), deepcopy(b))
-    #RDM1{T}(a, b) where T = new{T}(deepcopy(a), deepcopy(b))
 end
+
+"""
+    aa::Array{T,2}  # αα
+    ab::Array{T,2}  # αβ 
+    bb::Array{T,2}  # ββ
+
+2 particle RDM type 
+"""
 struct RDM2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
     ab::Array{T,4}
     bb::Array{T,4}
-    #RDM2(a::Array{T,4}, b::Array{T,4}, c::Array{T,4}) where T = new{T}(deepcopy(a), deepcopy(b), deepcopy(c))
-    #RDM2{T}(a, b, c) where T = new{T}(deepcopy(a), deepcopy(b), deepcopy(c))
 end
+"""
+    aa::Array{T,2}  # αα
+    ab::Array{T,2}  # αβ 
+    bb::Array{T,2}  # ββ
+
+2 Cumulant 
+"""
 struct Cumulant2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
     ab::Array{T,4}
     bb::Array{T,4}
 end
 
-# spin-summed RDMs
+"""
+    rdm::Array{T,2}
+
+Spin-summed 1-particle RDM
+"""
 struct ssRDM1{T} <: AbstractArray{T,2} 
     rdm::Array{T,2}
-    #ssRDM1(a::Matrix{T}) where T = new{T}(deepcopy(a))
-    #ssRDM1{T}(a) where T = new{T}(deepcopy(a))
 end
+"""
+    rdm::Array{T,4}
+
+Spin-summed 2-particle RDM
+"""
 struct ssRDM2{T} <: AbstractArray{T,4} 
     rdm::Array{T,4}
-    #ssRDM2(a::Array{T,4}) where T = new{T}(deepcopy(a))
-    #ssRDM2{T}(a) where T = new{T}(deepcopy(a))
 end
 
 
