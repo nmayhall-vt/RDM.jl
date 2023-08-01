@@ -16,5 +16,6 @@ export RDM2
 export ssRDM1
 export ssRDM2
 export build_orbital_gradient
+export build_orbital_hessian
 
 end

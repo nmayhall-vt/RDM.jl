@@ -60,8 +60,67 @@ function build_orbital_gradient(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}; v
     return pack_gradient(2*(G-G'),N)
 end
 
+
 """
-    build_orbital_hessian(ints, rdm1, rdm2)
+    build_generalised_fock(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
+
+Build fock like term for cmf
+f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t} 
+
+# Arguments
+- `ints`: Integrals
+- `rdm1`: Spin summed 1RDM, NxN
+- `rdm2`: Spin summed 2RDM, NxNxNxN
+"""
+
+function build_generalised_fock(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}; verbose=0) where T
+    verbose == 0 || println(" In build_generalised_fock_cmf")
+    
+    N = n_orb(ints)
+    f = zeros(N,N)
+   
+    f = ints.h1*d1.rdm 
+    V = ints.h2
+
+    @tensor begin
+        f[p,q] +=  V[p,r,s,t] * d2.rdm[q,r,s,t]
+    end
+    return f
+end
+
+
+"""
+    build_generalised_fock(ints, rdm1::RDM1{T}, rdm2::RDM2{T})
+
+Build fock like term for cmf
+f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t} 
+
+# Arguments
+- `ints`: Integrals
+- `rdm1`: Not Spin summed 1RDM, NxN
+- `rdm2`: Not Spin summed 2RDM, NxNxNxN
+"""
+
+function build_generalised_fock(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}; verbose=0) where T
+    verbose == 0 || println(" In build_generalised_fock_cmf")
+    N = n_orb(ints)
+    f = zeros(N,N)
+    f = ints.h1*(d1.a+d1.b)
+    V = ints.h2
+
+    @tensor begin
+        f[p,t] +=  V[p,q,r,s] * d2.aa[t,q,r,s]
+        f[p,t] +=  V[p,q,r,s] * d2.bb[t,q,r,s]
+        f[p,t] +=  V[p,q,r,s] * d2.ab[t,q,r,s]
+        f[p,t] +=  V[p,q,r,s] * d2.ab[r,s,t,q]
+    end
+    return f
+end
+
+
+
+"""
+    build_orbital_hessian(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
 
 Build the full orbital rotation hessian
 H_{pq,rs} = <[[H,p'q-q'p], r's-s'r]>
@@ -71,9 +130,101 @@ H_{pq,rs} = <[[H,p'q-q'p], r's-s'r]>
 - `rdm1`: Spin summed 1RDM
 - `rdm2`: Spin summed 2RDM
 """
-function build_orbital_hessian(ints::InCoreInts, rdm1, rdm2; verbose=0)
+function build_orbital_hessian(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}; verbose=0) where T
     verbose == 0 || println(" In build_orbital_hessian")
+    
+    N = n_orb(ints)
+    A = zeros(N,N,N,N)
+    Y = zeros(N,N,N,N)
+    H = zeros(N,N,N,N)                  #initialize the hessian matrix
+    F =build_generalised_fock(ints,d1,d2) #getting the generalised fock
+    d_1 = d1.rdm                       # 1-RDM
+    d_2 = d2.rdm                       #2-RDM
+    V = ints.h2                         #two-electron integral
+    h_1=ints.h1                         #one-electron integral
+    I = Diagonal(ones(size(F, 1)))
+    @tensor begin
+        Y[p,q,r,s]  = (d_2[p, m, r, n]* V[q, m, n, s])
+        Y[p,q,r,s] += d_2[p, m, n, r]* V[q, m, n, s]  
+        Y[p,q,r,s] += d_2[p, r, m, n] * V[q, s, m, n]
+        
+        A[p,q,r,s]  = (2*d_1[p,r]*h_1[q,s] )
+        A[p,q,r,s] -= ((F[p,r]+F[r,p])*I[q,s]) 
+        A[p,q,r,s] += 2*Y[p,q,r,s]
+        H[p,q,r,s]  = A[p,q,r,s]
+        H[p,q,r,s] -= A[p,q,s,r]
+        H[p,q,r,s]  -= A[q,p,r,s]
+        H[p,q,r,s]  += A[q,p,s,r]
+    end
+    return pack_hessian(H,N)
 end
+
+
+"""
+    build_orbital_hessian(ints, rdm1::RDM1{T}, rdm2::RDM2{T})
+
+Build the full orbital rotation hessian
+H_{pq,rs} = <[[H,p'q-q'p], r's-s'r]>
+
+# Arguments
+- `ints`: Integrals
+- `rdm1`: Not Spin summed 1RDM
+- `rdm2`: Not Spin summed 2RDM
+"""
+function build_orbital_hessian(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}; verbose=0) where T
+    verbose == 0 || println(" In build_orbital_hessian")
+    
+    N = n_orb(ints)
+    A = zeros(N,N,N,N)                    
+    Y = zeros(N,N,N,N)
+    d_2=zeros(N,N,N,N)
+    H=zeros(N,N,N,N)                                      #initialize the hessian matrix
+    F=build_generalised_fock(ints,d1,d2)                  #getting the generalised fock  term for cmf
+    d_1 = (d1.a + d1.b)                                    # 1-RDM
+    V= ints.h2                                             #two-electron integral
+    h=ints.h1 
+
+
+  
+    I = Diagonal(ones(size(F, 1)))
+    for p in 1:N, q in 1:N, r in 1:N, s in 1:N             #2-RDM
+        d_2[p,q,r,s] =  d2.aa[p,q,r,s]+d2.bb[p,q,r,s]+d2.ab[p,q,r,s]+d2.ab[r,s,p,q]
+    end
+    # @tensor begin 
+    #     d_2[p,q,r,s] =  d2.aa[p,q,r,s]
+    #     d_2[p,q,r,s] += d2.bb[p,q,r,s]
+    #     d_2[p,q,r,s] += d2.ab[p,q,r,s]
+    #     d_2[p,q,r,s]+=  d2.ab[r,s,p,q]
+    # end
+    @tensor begin
+        Y[p,q,r,s]  =   d_2[p, m, r, n]* V[q, m, n, s]
+        Y[p,q,r,s]  +=  d_2[p, m, n, r]* V[q, m, n, s]
+        Y[p,q,r,s]  +=  d_2[p, r, m, n] * V[q, s, m, n]
+    end
+    
+    for p in 1:N, q in 1:N, r in 1:N, s in 1:N   
+        Y[r,s,p,q]=Y[p,q,r,s]
+    end
+    @tensor begin
+        A[p,q,r,s]  = 2*d_1[p,r]*h[q,s]
+	    A[p,q,r,s] -= F[p,r]*I[q,s]
+        A[p,q,r,s] -= F[r,p]*I[q,s]
+        A[p,q,r,s] += 2*Y[p,q,r,s]
+    end
+
+    for p in 1:N, q in 1:N, r in 1:N, s in 1:N 
+        H[p,q,r,s] =  A[p,q,r,s]-A[p,q,s,r]-A[q,p,r,s]+A[q,p,s,r]
+    end
+    # @tensor begin
+    #     H[p,q,r,s] =  A[p,q,r,s]
+    #     H[p,q,r,s] -= A[p,q,s,r]
+    #     H[p,q,r,s] -= A[q,p,r,s]
+    #     H[p,q,r,s] += A[q,p,s,r]
+    # end
+   
+    return pack_hessian(H,N)
+end
+
 
 
 """
@@ -114,5 +265,52 @@ function pack_gradient(K,norb)
     return kout
 end
 
+"""
+    pack_hessian(H,norb)
 
+Pack the hessian tensor to  symmetric matrix 
+"""
+function pack_hessian(H, norb)
+    size(H) == (norb, norb, norb, norb) || throw(DimensionMismatch)
+    hout = zeros(norb*(norb-1)÷2, norb*(norb-1)÷2)
+    ind_row = 1
+    for i in 1:norb
+        for j in i+1:norb
+            ind_col = 1
+            for k in 1:norb
+                for l in k+1:norb
+                    hout[ind_row, ind_col] = H[i, j, k, l]
+                    hout[ind_col,ind_row]=hout[ind_row,ind_col]
+                    ind_col += 1
+                end
+            end
+            ind_row += 1
+        end
+    end
+    return hout
+end
 
+"""
+    unpack_hessian(H,norb)
+
+Unpack the hessian matrix to full tensor 
+"""
+function unpack_hessian(h, norb)
+    length(h) == norb*(norb-1)÷2 * norb*(norb-1)÷2 || throw(DimensionMismatch)
+    H = zeros(norb, norb, norb, norb)
+    ind_row = 1
+    for i in 1:norb
+        for j in i+1:norb
+            ind_col = 1
+            for k in 1:norb
+                for l in k+1:norb
+                    H[i, j, k, l] = h[ind_row, ind_col]
+                    H[j, i, l, k] = H[i, j, k, l]  # Fill in symmetric entries
+                    ind_col += 1
+                end
+            end
+            ind_row += 1
+        end
+    end
+    return H
+end
