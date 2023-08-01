@@ -1,12 +1,9 @@
 using QCBase
 using RDM  
 using Test
-using NPZ
-using Printf
-using InCoreIntegrals
 using JLD2
 using LinearAlgebra
-using Random
+
 
 
 @testset "RDM" begin
@@ -25,8 +22,10 @@ using Random
     println("\n Finite difference Hessian")
     display(num_hess_function)
     display(num_hess_gradient)
-    
+    @test isapprox(num_hess_gradient, orbital_hessian, atol=1e-8)
+    @test isapprox(num_hess_function, orbital_hessian, atol=1e-4)
+    @test isapprox(num_hess_function, num_hess_gradient, atol=1e-4)
     @test isapprox(norm(orbital_hessian-num_hess_function), 0.0, atol=1e-4)
-    @test isapprox(norm(orbital_hessian-num_hess_gradient), 0.0, atol=1e-6)
+    @test isapprox(norm(orbital_hessian-num_hess_gradient), 0.0, atol=1e-8)
     @test isapprox(norm(num_hess_function-num_hess_gradient), 0.0, atol=1e-4)
 end
