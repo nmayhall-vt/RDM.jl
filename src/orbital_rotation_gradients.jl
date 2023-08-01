@@ -62,7 +62,7 @@ end
 
 
 """
-    build_orbital_fock(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
+    build_generalised_fock(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
 
 Build fock like term for cmf
 f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t} 
@@ -74,7 +74,7 @@ f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t}
 """
 
 function build_generalised_fock(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}; verbose=0) where T
-    verbose == 0 || println(" In build_orbital_fock_cmf")
+    verbose == 0 || println(" In build_generalised_fock_cmf")
     
     N = n_orb(ints)
     f = zeros(N,N)
@@ -90,7 +90,7 @@ end
 
 
 """
-    build_orbital_fock(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
+    build_generalised_fock(ints, rdm1::RDM1{T}, rdm2::RDM2{T})
 
 Build fock like term for cmf
 f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t} 
@@ -102,7 +102,7 @@ f_{pq} = V_{r,p,s,t}*rdm2_{r,q,s,t}
 """
 
 function build_generalised_fock(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}; verbose=0) where T
-    verbose == 0 || println(" In build_orbital_gradient_fock_cmf")
+    verbose == 0 || println(" In build_generalised_fock_cmf")
     N = n_orb(ints)
     f = zeros(N,N)
     f = ints.h1*(d1.a+d1.b)
@@ -120,7 +120,7 @@ end
 
 
 """
-    build_orbital_hessian(ints, rdm1, rdm2)
+    build_orbital_hessian(ints, rdm1::ssRDM1{T}, rdm2::ssRDM2{T})
 
 Build the full orbital rotation hessian
 H_{pq,rs} = <[[H,p'q-q'p], r's-s'r]>
@@ -161,7 +161,7 @@ end
 
 
 """
-    build_orbital_hessian(ints, rdm1, rdm2)
+    build_orbital_hessian(ints, rdm1::RDM1{T}, rdm2::RDM2{T})
 
 Build the full orbital rotation hessian
 H_{pq,rs} = <[[H,p'q-q'p], r's-s'r]>
@@ -179,7 +179,7 @@ function build_orbital_hessian(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}; ve
     Y = zeros(N,N,N,N)
     d_2=zeros(N,N,N,N)
     H=zeros(N,N,N,N)                                      #initialize the hessian matrix
-    F=build_generalised_fock(ints,d1,d2)     #getting the generalised fock  term for cmf
+    F=build_generalised_fock(ints,d1,d2)                  #getting the generalised fock  term for cmf
     d_1 = (d1.a + d1.b)                                    # 1-RDM
     V= ints.h2                                             #two-electron integral
     h=ints.h1 
@@ -293,7 +293,7 @@ end
 """
     unpack_hessian(H,norb)
 
-Pack the hessian matrix to full tensor 
+Unpack the hessian matrix to full tensor 
 """
 function unpack_hessian(h, norb)
     length(h) == norb*(norb-1)÷2 * norb*(norb-1)÷2 || throw(DimensionMismatch)
