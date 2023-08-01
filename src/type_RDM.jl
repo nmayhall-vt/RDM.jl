@@ -1,26 +1,57 @@
+using QCBase
 using RDM 
 using TensorOperations
 using LinearAlgebra
 
+"""
+    a::Array{T,2}   # α
+    b::Array{T,2}   # β
+
+1 particle RDM type 
+"""
 struct RDM1{T} <: AbstractArray{T,2} 
     a::Array{T,2}
     b::Array{T,2}
 end
+
+"""
+    aa::Array{T,2}  # αα
+    ab::Array{T,2}  # αβ 
+    bb::Array{T,2}  # ββ
+
+2 particle RDM type 
+"""
 struct RDM2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
     ab::Array{T,4}
     bb::Array{T,4}
 end
+"""
+    aa::Array{T,2}  # αα
+    ab::Array{T,2}  # αβ 
+    bb::Array{T,2}  # ββ
+
+2 Cumulant 
+"""
 struct Cumulant2{T} <: AbstractArray{T,4} 
     aa::Array{T,4}
     ab::Array{T,4}
     bb::Array{T,4}
 end
 
-# spin-summed RDMs
+"""
+    rdm::Array{T,2}
+
+Spin-summed 1-particle RDM
+"""
 struct ssRDM1{T} <: AbstractArray{T,2} 
     rdm::Array{T,2}
 end
+"""
+    rdm::Array{T,4}
+
+Spin-summed 2-particle RDM
+"""
 struct ssRDM2{T} <: AbstractArray{T,4} 
     rdm::Array{T,4}
 end
@@ -34,7 +65,20 @@ function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
 end
 function ssRDM2(rdm::RDM2{T}) where T
-    return ssRDM2{T}(rdm.aa .+ rdm.bb .+ 2 .* rdm.ab)
+    return ssRDM2{T}(rdm.aa .+ rdm.bb .+ rdm.ab + permutedims(rdm.ab, [3,4,1,2]))
+end
+
+function ssRDM1(no::Integer; T=Float64)
+    return ssRDM1{T}(zeros(no, no))
+end
+function ssRDM2(no::Integer; T=Float64)
+    return ssRDM2{T}(zeros(no, no, no, no))
+end
+function RDM1(no::Integer; T=Float64)
+    return RDM1{T}(zeros(no, no), zeros(no, no))
+end
+function RDM2(no::Integer; T=Float64)
+    return RDM2{T}(zeros(no, no, no, no), zeros(no, no, no, no), zeros(no, no, no, no))
 end
 
 function RDM2(rdm::RDM1{T}) where T
@@ -47,133 +91,10 @@ function RDM2(rdm::RDM1{T}) where T
         Dbb[p,q,r,s] = rdm.b[p,q] * rdm.b[r,s] - rdm.b[p,s] * rdm.b[r,q]
         Dab[p,q,r,s] = rdm.a[p,q] * rdm.b[r,s]
     end
-    return ssRDM2{T}(Daa, Dab, Dbb)
+    return RDM2{T}(Daa, Dab, Dbb)
 end
 
-n_orb(r::RDM1) = size(r.a,1)
-n_orb(r::RDM2) = size(r.aa,1)
-n_orb(c::Cumulant2) = size(c.a,1)
 
-n_orb(r::ssRDM1) = size(r.rdm,1)
-n_orb(r::ssRDM2) = size(r.rdm,1)
-
-"""
-    compute_energy(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}) where T
-
-Return energy defined by spin-summed  `rdm1` and `rdm2`.
-# Arguments
-- `ints`: InCoreInts object
-- `d1`:   1 particle reduced density matrix
-- `d2`:   2 particle reduced density matrix
-"""
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, d1::ssRDM1{T}, d2::ssRDM2{T}) where T
-#={{{=#
-    length(d1.rdm) == length(ints.h1) || throw(DimensionMismatch)
-
-    no = n_orb(d1)
-    e = ints.h0
-    
-    for p in 1:no, q in 1:no
-        e += ints.h1[p,q] * d1.rdm[p,q]
-    end
-    
-    for p in 1:no, q in 1:no, r in 1:no, s in 1:no
-        e += .5 * ints.h2[p,q,r,s] * d2.rdm[p,q,r,s]
-    end
-    
-    return e
-end
-#=}}}=#
-
-"""
-    compute_energy(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}) where T
-
-Return energy defined by `rdm1` and `rdm2`.
-# Arguments
-- `ints`: InCoreInts object
-- `d1`:   1 particle reduced density matrix
-- `d2`:   2 particle reduced density matrix
-"""
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, d1::RDM1{T}, d2::RDM2{T}) where T
-#={{{=#
-    length(d1.a) == length(ints.h1) || throw(DimensionMismatch)
-    length(d1.b) == length(ints.h1) || throw(DimensionMismatch)
-
-    no = n_orb(d1)
-    e = ints.h0
-    
-    for p in 1:no, q in 1:no
-        e += ints.h1[p,q] * (d1.a[p,q] + d1.b[p,q])
-    end
-    
-    for p in 1:no, q in 1:no, r in 1:no, s in 1:no
-        e += .5 * ints.h2[p,q,r,s] * d2.aa[p,q,r,s]
-        e += .5 * ints.h2[p,q,r,s] * d2.bb[p,q,r,s]
-        e +=      ints.h2[p,q,r,s] * d2.ab[p,q,r,s]
-    end
-    
-    return e
-end
-#=}}}=#
-
-"""
-    compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) where T
-
-Return energy defined by `rdm1`.
-# Arguments
-- `ints`: InCoreInts object
-- `rdm1`: 1 particle reduced density matrix
-"""
-function InCoreIntegrals.compute_energy(ints::InCoreInts{T}, rdm1::RDM1{T}) where T
-#={{{=#
-    length(rdm1.a) == length(ints.h1) || throw(DimensionMismatch)
-    length(rdm1.b) == length(ints.h1) || throw(DimensionMismatch)
-
-    e = ints.h0
-    
-    for p in 1:no, q in 1:no
-        e += ints.h1[p,q] * (rdm1.a[p,q] + rdm.b[p,q])
-    end
-    
-    for p in 1:no, q in 1:no, r in 1:no, s in 1:no
-        e += .5 * ints.h2[p,q,r,s] * rdm1.a[p,q] * rdm1.a[r,s]
-        e -= .5 * ints.h2[p,q,r,s] * rdm1.a[p,s] * rdm1.a[r,q]
-        
-        e += .5 * ints.h2[p,q,r,s] * rdm1.b[p,q] * rdm1.b[r,s]
-        e -= .5 * ints.h2[p,q,r,s] * rdm1.b[p,s] * rdm1.b[r,q]
-        
-        e += ints.h2[p,q,r,s] * rdm1.a[p,q] * rdm1.b[r,s]
-    end
-    
-    return e
-end
-#=}}}=#
-
-
-"""
-    compute_fock(ints::InCoreInts, rdm1::RDM1)
-
-Compute Fock Matrix
-"""
-function compute_fock(ints::InCoreInts, rdm1::RDM1)
-#={{{=#
-    fa = deepcopy(ints.h1)
-    fb = deepcopy(ints.h1)
-    @tensor begin
-        #a
-        fa[r,s] += 0.5 * ints.h2[p,q,r,s] * rdm1.a[p,q] 
-        fa[r,s] -= 0.5 * ints.h2[p,r,q,s] * rdm1.a[p,q]
-        fa[r,s] += 0.5 * ints.h2[p,q,r,s] * rdm1.b[p,q] 
-        
-        #b
-        fb[r,s] += 0.5 * ints.h2[p,q,r,s] * rdm1.b[p,q] 
-        fb[r,s] -= 0.5 * ints.h2[p,r,q,s] * rdm1.b[p,q]
-        fb[r,s] += 0.5 * ints.h2[p,q,r,s] * rdm1.a[p,q]
-        
-    end
-    return (fa,fb) 
-end
-#=}}}=#
 
 
 """
@@ -189,12 +110,13 @@ function RDM1(d2::RDM2{T}) where T
     n = n_orb(d2) 
     d1a = zeros(n,n)
     d1b = zeros(n,n)
-    tmp = zeros(n,n)
     for p in 1:n
         for q in 1:n
             for r in 1:n
                 d1a[p,q] += d2.aa[p,q,r,r]
-                d1b[p,q] += d2.bb[p,q,r,r]
+                d1b[p,q] += d2.bb[r,r,p,q]
+                #d1a[p,q] += d2.ab[p,q,r,r]
+                #d1b[p,q] += d2.ab[r,r,p,q]
             end
         end
     end
@@ -202,8 +124,19 @@ function RDM1(d2::RDM2{T}) where T
     cb = tr(d1b)
     Na = (1 + sqrt(1+4*ca) )/2
     Nb = (1 + sqrt(1+4*cb) )/2
-    return RDM1{T}(d1a ./ (Na-1), d1b ./ (Nb-1))
+    #println((Na, Nb))
+    return RDM1(d1a ./ (Na-1), d1b ./ (Nb-1))
 end
+
+
+function QCBase.n_orb(r::RDM1) 
+    size(r.a,1)
+end
+QCBase.n_orb(r::RDM2) = size(r.aa,1)
+QCBase.n_orb(c::Cumulant2) = size(c.a,1)
+
+QCBase.n_orb(r::ssRDM1) = size(r.rdm,1)
+QCBase.n_orb(r::ssRDM2) = size(r.rdm,1)
 
 Base.:-(da::RDM1, db::RDM1) = return RDM1(da.a.-db.a, da.b.-db.b) 
 Base.:+(da::RDM1, db::RDM1) = return RDM1(da.a.+db.a, da.b.+db.b) 
