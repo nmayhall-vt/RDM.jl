@@ -57,10 +57,6 @@ struct ssRDM2{T} <: AbstractArray{T,4}
 end
 
 
-Base.size(r::RDM1) = return size(r.a)
-Base.size(r::RDM2) = return size(r.aa)
-
-
 function ssRDM1(rdm::RDM1{T}) where T
     return ssRDM1{T}(rdm.a .+ rdm.b)
 end
@@ -127,36 +123,4 @@ function RDM1(d2::RDM2{T}) where T
     #println((Na, Nb))
     return RDM1(d1a ./ (Na-1), d1b ./ (Nb-1))
 end
-
-
-function QCBase.n_orb(r::RDM1) 
-    size(r.a,1)
-end
-QCBase.n_orb(r::RDM2) = size(r.aa,1)
-QCBase.n_orb(c::Cumulant2) = size(c.a,1)
-
-QCBase.n_orb(r::ssRDM1) = size(r.rdm,1)
-QCBase.n_orb(r::ssRDM2) = size(r.rdm,1)
-
-Base.:-(da::RDM1, db::RDM1) = return RDM1(da.a.-db.a, da.b.-db.b) 
-Base.:+(da::RDM1, db::RDM1) = return RDM1(da.a.+db.a, da.b.+db.b) 
-
-function Base.display(da::ssRDM1)
-    display("RDM1")
-    display(da.rdm)
-end
-
-function Base.display(da::RDM1)
-    display("RDM1(α)")
-    display(da.a)
-    display("RDM1(β)")
-    display(da.b)
-end
-
-function Base.display(d::RDM2)
-    @printf("RDM2(αα) size: %s\n", size(d.aa))
-    @printf("RDM2(αβ) size: %s\n", size(d.ab))
-    @printf("RDM2(ββ) size: %s\n", size(d.bb))
-end
-
 

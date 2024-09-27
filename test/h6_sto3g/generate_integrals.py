@@ -31,7 +31,10 @@ h2.shape = (norb, norb, norb, norb)
 cisolver = pyscf.fci.FCI(mf)
 print('E(FCI) = %.12f' % cisolver.kernel()[0])
 
+Fao = mf.get_fock()
+Fmo = mf.mo_coeff.T @ Fao @ mf.mo_coeff
 
-np.save('h0.npy', h0)
-np.save('h1.npy', h1)
+
+np.save('h0.npy', mf.e_tot)
+np.save('h1.npy', Fmo)
 np.save('h2.npy', h2)

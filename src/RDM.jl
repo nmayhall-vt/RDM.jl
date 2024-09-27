@@ -6,6 +6,9 @@ using InCoreIntegrals
 
 # Write your package code here.
 include("type_RDM.jl")
+include("type_phRDM.jl")
+include("extend_Base.jl")
+include("extend_QCBase.jl")
 include("subsets.jl")
 include("computations.jl")
 include("transformations.jl")
